@@ -1,0 +1,610 @@
+Testing document for the Command shell
+
+(I didn't implement Step 4: Pipes and redirection)
+
+Kefan Lin
+NetID:kl352
+
+***************************************************************************************
+
+To start the shell, please run
+
+./ffosh
+
+After starting the shell, you will see
+
+ffosh:/home/kl352/ece551/mp_miniproject $
+
+which means the shell starts successfully,waiting for input.
+
+Now you can start testing the shell.
+
+***************************************************************************************
+
+This part is about testing the basic behaviors of the shell.
+
+1. Hit Enter
+
+   Input: hit "Enter" on the keyboard
+   
+   Result: It will print a new line with prompt
+
+   	   ffosh:/home/kl352/ece551/mp_miniproject $
+	   
+   This is Correct.
+
+   Reason: If the user just hit "Enter", my shell is designed to wait
+   	   for another input command line.
+
+2. ctrl+D
+
+   Input: ctrl+D
+
+   Result: The shell exits
+
+   This is correct.
+
+   Reason: ctrl+D means EOF.According to the specification in the README,
+   	   When EOF is encountered in stdin, the shell should exit.
+
+3. Run a program that will be terminated by a signal
+
+   Input: ./test
+
+   Result: Terminated by signal 11
+
+   This is correct.
+
+   Reason: "test" is a simple program that will cause segmentation fault.
+   	   When my shell runs it, the test program will be terminated by
+	   signal 11, and my shell can display this information correctly.
+
+4. Type in "exit"
+
+   Input: exit
+
+   Result: The shell exits
+
+   This is correct.
+
+   Reason: According to the specification in the README, when the user
+   	   type in "exit" and hit Enter the shell should exit.
+
+5. env
+
+   Input: env
+
+   Result: It will prints out a list of environment variables.
+   	   And the last variable will be:
+	   
+	   ECE551PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+   This is correct.
+
+   Reason: According to the specification in the README, when the shell
+   	   starts, it should set the ECE551PATH environment variable,
+	   which has the same value as PATH.
+
+6. The shell runs itself and test the relative path name
+
+   Input: If you have already started the shell,
+   	  
+   	  ./ffosh
+	  exit
+	  exit
+
+	  If not,
+
+	  ./ffosh
+	  ./ffosh
+	  exit
+	  exit
+
+   Result: It will prints out
+
+   	   Program was successful
+	   ffosh:/home/kl352/ece551/mp_miniproject $
+
+	   Then exit the outer running shell
+
+   This is correct.
+
+   Reason: When you are in the inner shell, if you type in "exit" and hit
+   	   Enter, you will exit the inner shell, and the outer shell will
+	   print "Program was successful" to indicate the inner shell exits
+	   successful. Then you input "exit" again, the outer shell will exit.
+	   Besides, when my shell encounter a relative path name, it will not
+	   use ECE551PATH to search for the executable program.
+
+***************************************************************************************
+
+This part is about testing the various commands.
+
+1. /bin/ls
+
+   Input: /bin/ls
+
+   Result: It will print out the list of all files and directories in current directory,
+   	   and print out
+	   
+	   Program was successful
+
+   This is correct.
+
+   Reason: You enter the full path of the command "ls". So the shell will go to the
+   	   path and find the command, then run it. And it runs successfully, so the
+	   shell will print out "Program was successful".
+
+2. /bin/pwd
+
+   Input: /bin/pwd
+
+   Result: /home/kl352/ece551/mp_miniproject
+   	   Program was successful
+
+   This is correct.
+
+   Reason: Similar to 1. This command will get current directory and print it out.
+   	   After that,the shell will print out "Program was successful" because
+	   this command runs successfully.
+
+3. /bin/ls -l
+
+   Input: /bin/ls -l
+
+   Result: It will print out all files and directories in current directory with their
+   	   detailed information.
+
+   This is correct.
+
+   Reason: The shell will parse the input command into "/bin/ls" and "-l", so the
+   	   "-l" argument will be taken into account.
+
+4. ls
+
+   Input: ls
+
+   Result: The same as 1.
+
+   This is correct.
+
+   Reason: When the user doesn't type in the full path of a command, the shell will go to
+   	   directories in ECE551PATH to find the command. "ls" will be found in /bin, so
+	   my shell will concatenate "/bin" and "/" and "ls" to produce the full path name
+	   ,and the execute the command.
+
+5. ls -l
+
+   Input: ls -l
+
+   Result: The same as 3.
+
+   This is correct.
+
+   Reason: The same as 3 and 4.
+
+6. (many spaces) ls (many spaces) -l
+
+   Input:          ls       -l
+
+   Result: The same as 5.
+
+   This is correct.
+
+   Reason: When the user types in many spaces at the beginning or in between different
+   	   arguments, the shell will ignore the spaces.
+
+7. Command that doesn't exist
+
+   Input: Drew
+
+   Result: Command Drew not found
+   	   Program failed with code 1
+
+   This is correct.
+
+   Reason: Drew is not a command in the directories specified by ECE551PATH. It is also not a
+   	   built-in command in my shell.
+
+8. Quotation marks
+
+   Input: "ls" "-l"
+
+   Result: The same as 3 and 5.
+
+   This is correct.
+
+   Reason: According to the specification in README,my shell is able to
+   	   let the user use quotation marks to set the arguments.
+
+9. Quotation marks that include white spaces, with spaces in between arguments
+
+   Input: echo "aaa          bbb" ccc            "d    d"
+
+   Result: aaa          bbb ccc d    d
+   	   Program was successful
+
+   This is correct.
+
+   Reason: According to the specification in README,the user may use
+   	   quotation marks to include literal whitepsaces.So,
+	   
+	   aaa          bbb
+	   ccc
+	   d    d
+
+	   they are the 3 arguments for echo. Besides, my shell
+	   can ignore white spaces in between arguments correctly
+	   even when quotation marks are included in the command.
+	   
+10. Escaped quotation marks and backslashes
+
+    Input: echo "\"hello world\""   "a\\b\\c d\\"
+
+    Result: "hello world" a\b\c d\
+    	    Program was successful
+
+   This is correct.
+
+   Reason: According to the specification in README, the shell should support
+   	   escaped quotation marks (\") and backslashes (\\) to allow the user
+	   to write a literal quotation mark and backslashes. My shell has this
+	   feature.
+
+11. Unclosed quotation mark
+
+    Input: echo "abcd""
+    	   echo "abc" "def""
+	   echo "
+	   echo """
+
+    Result: All the 4 commands will result in the output:
+   
+	   Can't have unclosed quotation mark at the end of command line!
+
+    This is correct.
+
+    Reason: According to the specification in README,It is an error
+   	    to have an unclosed quotation mark at the end of the command line.
+	    My shell is able to report this error correctly.
+
+12. Other escape
+
+    Input: echo Dre\w \is m\y\ professor
+
+    Result: Drew is my professor
+    	    Program was successful
+
+    Input: echo  \"\"\\
+
+    Result: ""\
+    	    Program was successful
+
+    Input: echo "\"\\"
+
+    Result: "\
+    	    Program was successful
+
+    These are correct.
+
+    Reason: My shell will ignore the backslashes, and only look at the things
+    	    that right after the backslashes.
+
+***************************************************************************************
+
+This part is about testing the cd command and variables
+
+1. Go to home directory
+
+   Input: cd
+
+   Result: The shell will prints out a new prompt line:
+
+   	   ffosh:/home/kl352 $
+
+   This is correct.
+
+   Reason: In my design, if the user types in "cd" only, the shell will go to the
+   	   directory specified by the "HOME" environment variable, which is
+	   /home/kl352 in default situation.
+
+2. Go upper and lower in different directories
+
+   Input: cd ..
+   	  cd ./mp_miniproject
+
+   Result: ffosh:/home/kl352/ece551 $
+   	   ffosh:/home/kl352/ece551/mp_miniproject $
+
+   This is correct.
+
+   Reason: ".." means the upper level directory, and "./" means current directory. So
+   	   these two commands can go to the upper level directory and go back to
+	   the mp_miniproject directory.
+
+3. Go to a directory which does not exist\
+
+   Input: cd Drew
+
+   Result: No such directory
+
+   This is correct.
+
+   Reason: In the current directory(/home/kl352/ece551/mp_miniproject), there is
+   	   no directory named "Drew". So the shell will print out
+	   "No such directory"
+
+4. Too many arguments for cd
+
+   Input: cd Drew Genevieve
+
+   Result: Input format is wrong.
+   	   Usage: cd dir
+	   
+   This is correct.
+
+   Reason: There are 2 arguments for cd, but cd can only take 1 argument.
+   	   So my shell will tell the user that the input format is wrong.
+	   The correct usage is: cd dir.
+
+5. Go to full path
+
+   Input: cd /bin
+
+   Result: ffosh:/bin $
+
+   This is correct.
+
+   Reason: My shell can go to relative path as well as full path.
+
+6. set a variable
+
+   Input: set a Drew
+   	  echo $a
+
+   Result: Drew
+   	   Program was successful
+
+   This is correct.
+
+   Reason: After executing the first command lind, the shell stored the key-value
+   	   pair of (a,Drew). So when the user types "echo $a", $a will be replaced
+	   with its value, which is Drew.
+
+7. Wrong format of setting a variable
+
+   Input: set
+       OR set a
+
+   Result: Input format is wrong.
+   	   Usage: set var value
+
+   This is correct.
+
+   Reason: The "set" command must have 2 arguments. So these 2 types of command line
+   	   are all invalid format. My shell will tell the user to type the correct
+	   format command.
+
+8. Set a variable that has a special value
+
+   Input: set b abc"""\\\d   e fgh
+   	  echo $b
+
+   Result: abc"""\\\d   e fgh
+   	   Program was successful
+
+   This is correct.
+
+   Reason: According to the specification in README,the shell should set the variable b
+   	   to the string on the rest of the command line even if it contains spaces, etc.
+	   My shell has this feature.
+
+9. Set a variable which has a illegal name
+
+   Input: set a+b c
+
+   Result: Variable name must be a combination of letters, numbers and underscores!
+
+   Input: set a\b c
+
+   Result: Variable name must be a combination of letters, numbers and underscores!
+
+   These are correct.
+
+   Reason: Variable name can only contain letters, numbers and underscores. So my shell
+   	   does not allow variable names to be "a+b". Besides, when set a variable,
+	   my shell will not allow escape in variable name. So a\b is just a\b.It will
+	   not be considered as ab.
+
+10. Set a variable then update it
+
+    Input: set _AbC123 Drew
+    	   echo $_AbC123
+	   set _AbC123 Genevieve
+	   echo $_AbC123
+
+    Result: Drew
+    	    Program was successful
+	    Genevieve
+	    Program was successful
+
+    This is correct.
+
+    Reason: My shell is able to store every variable and update them if the user
+    	    wants to set new values to them. 
+	    Besides, this test case also shows that the variable name can be a
+	    combination of letters, numbers and underscores.
+	    
+
+11. Change the PATH environment variable
+
+    Input: set PATH Drew
+    	   export PATH
+	   echo $PATH
+	   
+    Result: Drew
+	    Program was successful
+
+    This is correct.
+
+    Reason: My shell will just search ECE551PATH to look for the command "echo".
+    	    So change PATH will not affect the "echo" command.
+
+12. Change the ECE551PATH environment variable
+
+    Input: set ECE551PATH Drew
+    	   echo $ECE551PATH
+	   export ECE551PATH
+	   echo ECE551PATH
+
+    Result: Drew
+	    Program was successful           (After "echo $ECE551PATH")
+	    
+    	    Command echo not found
+	    Program failed with code 1	     (After "export ECE551PATH" and "echo ECE551PATH")
+
+
+    This is correct.
+
+    Reason: My shell will just search ECE551PATH to look for the command "echo".
+    	    When "set ECE551PATH Drew", the value of ECE551PATH stored in my shell
+	    is updated, but not exported yet. So the echo command still works.
+	    After "export ECE551PATH", the new value of ECE551PATH is updated in
+	    the environment variable list. So the shell will go to "Drew" to find
+	    the command "echo", and it will not find "echo" there.
+    
+13. Combination of variables
+
+    Input: set var1 123
+    	   set var2 abc
+	   echo $var1$var2
+
+    Result: 123abc
+    	    Program was successful
+
+    This is correct.
+
+    Reason: According to the specification in README, $var1$var2 is legal.
+    	    If var1=123,var2=abc,$var1$var2 should expand to 123abc.
+
+14. Combination of variables and other characters
+
+    Input: set var1 123
+    	   set var2 abc
+	   echo -$var1+$var2*=
+
+    Result: -123+abc*=
+    	    Program was successful
+
+    This is correct.
+
+    Reason: Similar to 13. My shell can correctly expand variables to their
+    	    values when there are some other characters in between.
+
+15. Greedy matching for variable names
+
+    Input : set a 123
+    	    set b xyz
+	    set ab Drew
+	    echo $ab
+
+    Result: Drew
+	    Program was successful
+
+    This is correct.
+
+    Reason: There is no specification about the variable matching rule in README.
+    	    So I design it to be greedy,which means that my shell will search for
+	    the longest legal name as the variable name, then expand it to its value.
+
+16. Greedy matching & variable does not exist
+
+    Input: set a 111
+    	   set b 222
+	   set c 333
+	   echo $abc$c$x$b$a
+
+    Result: Variable abc not found
+    	    Variable x not found
+	    333222111
+	    Program was successful
+
+    This is correct.
+
+    Reason: Because my shell is greedy for matching variable names, $abc will not be
+    	    considered as $a and bc, so the shell will print "Variable abc not found".
+	    Besides, we did not set the variable x before. So "Variable x not found".
+	    If there are variable names that could not be found, my shell will expand
+	    them to empty string. Hence, "echo $abc$c$x$b$a" is equivalent to
+	    "echo $c$b$a", because $abc and $x do not exist.
+
+17. Export variable that has not been set
+
+    Input: export abcde
+
+    Result: Variable abcde not found, can not export it!
+
+    This is correct.
+
+    Reason: We have not set the variabl "abcde", so it does not exist in my shell.
+
+18. Export a variable and check it using "env" command
+
+    Input: set x /Drew
+    	   env
+    	   export x
+	   env
+
+    Result: After the first "env", the shell will print out a list of environment
+    	    variables. And there will not exist a line "x=/Drew". Then we "export x"
+	    and use "env" again, the shell will print the environment variable list
+	    again, and the last line will be
+    	    
+	    x=/Drew
+
+    This is correct.
+
+    Reason: My shell is able to put the current value of a variable into the environment
+    	    for other programs. In the first "env", we have not exported "x", so it won't
+	    show up in the environment list. After exporting it , "x=/Drew" will be put into
+	    the list, and show up in the result of "env" command.
+
+19. Reverse the value of a variable
+
+    Input: set y Drew
+    	   echo $y
+	   rev y
+	   echo $y
+
+    Result: Drew
+    	    Program was successful    (After the first "echo $y")
+    	    werD
+	    Program was successful    (After the secon "echo $y")
+
+    This is correct.
+
+    Reason: According to the specification in README, the shell should be able to reverse
+    	    the string held in variable. My shell has this feature.
+
+
+20. Reverse variable that has not been set
+
+    Input: rev abcde
+
+    Result: Variable abcde not found,can not reverse it!
+
+    This is correct.
+
+    Reason: We have not set the variabl "abcde", so it does not exist in my shell.
+
+21. Wrong input format for rev
+
+    Input: rev a b
+
+    Result: Input format is wrong.
+    	    Usage: rev var
+
+    This is correct.
+
+    Reason: The "rev" command can only have 1 argument. If the user types in more than 1
+    	    arguments, my shell will tell the user the correct usage is "rev var".
